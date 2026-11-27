@@ -36,7 +36,7 @@ class GenerationTest {
             }
             pages.incrementAndGet();
             var plays = query.contains("page=1") ? """
-                    <play date="2022-06-05" quantity="2" length="1450" location="Frankenthal (Jochen)">
+                    <play id="101" date="2022-06-05" quantity="2" length="1450" location="Frankenthal (Jochen)">
                       <item objectid="13" name="CATAN"/><players><player name="Jochen (Frankenthal)"/>
                       <player name="Jochen"/><player name="Torben (Nachbar von Jochen)"/>
                       <player name="Georg (Freundeskreis Jochen)" win="0"/><player name="Georg" win="1"/>
@@ -46,7 +46,7 @@ class GenerationTest {
                     <play date="1998-12-31" quantity="9" length="100" location="Anderswo">
                       <item objectid="999" name="Ausgefiltert"/></play>
                     """ : query.contains("page=2") ? """
-                    <play date="2019-04-01" quantity="1" length="63" location="Frankenthal (Jochen)">
+                    <play id="102" date="2019-04-01" quantity="1" length="63" location="Frankenthal (Jochen)">
                       <item objectid="13" name="CATAN"/><players><player name="Jens G."/><player username="Lea"/><player name="Tim" win="1"/></players></play>
                     """ : "";
             xml(exchange, "<plays>" + plays + "</plays>");
@@ -79,11 +79,18 @@ class GenerationTest {
             var georg = history(html, "Georg");
             assertTrue(georg.contains("<strong>2</strong>"));
             assertTrue(georg.contains("CATAN") && georg.contains("05.06.2022") && georg.contains("1 Tag und 10 Minuten"));
-            assertTrue(georg.contains(">Sieg<") && georg.contains("2 Partien"));
+            assertTrue(georg.contains(">🏆<") && georg.contains("2 Partien"));
             assertFalse(georg.contains("Zug um Zug"));
+            assertTrue(georg.contains("href=\"https://boardgamegeek.com/play/details/101\">CATAN</a>"));
+            assertFalse(georg.contains("/play/details/102"));
             var tim = history(html, "Tim");
+            assertTrue(tim.contains("href=\"https://boardgamegeek.com/play/details/102\">CATAN</a>"));
+            assertTrue(tim.contains("<span>Zug um Zug</span>"));
             assertTrue(tim.contains("<strong>4</strong>"));
-            assertTrue(tim.contains("Kein Sieg markiert") && tim.contains("Sieg nicht erfasst") && tim.contains(">Sieg<"));
+            int winningPlay = tim.indexOf("/play/details/102");
+            assertFalse(tim.substring(0, winningPlay).contains("🏆"));
+            assertTrue(tim.substring(winningPlay).contains(">🏆<"));
+            assertFalse(html.contains("Kein Sieg markiert") || html.contains("Sieg nicht erfasst") || html.contains(">Sieg<"));
             assertTrue(tim.indexOf("Zug um Zug") < tim.indexOf("01.04.2019"));
         } finally {
             server.stop(0);
@@ -95,8 +102,8 @@ class GenerationTest {
         var output = directory.resolve("empty.html");
         new ReportWriter().write(Report.from(List.of(), java.util.Map.of()), output);
         assertTrue(Files.readString(output).contains("keine Partien eingetragen"));
-        var entry = new Report.Entry(java.time.LocalDate.parse("2026-01-01"), 13, "CATAN", 3, 0,
-                java.util.Map.of("Jochen", Report.Result.UNKNOWN));
+        var entry = new Report.Entry(null, java.time.LocalDate.parse("2026-01-01"), 13, "CATAN", 3, 0,
+                java.util.Map.of("Jochen", false));
         var report = Report.from(List.of(entry), java.util.Map.of());
         assertEquals(3, report.people().getFirst().rounds());
         assertEquals("0 Minuten", report.duration());

@@ -30,18 +30,18 @@ final class PlaySource {
     }
 
     private static Report.Entry entry(Play play, Map<String, String> aliases) {
-        var players = new HashMap<String, Report.Result>();
+        var winsByPlayer = new HashMap<String, Boolean>();
         for (var player : play.getPlayers()) {
             var name = player.getName() == null || player.getName().isBlank() ? player.getUsername() : player.getName();
             if (name != null && !name.isBlank()) {
-                players.merge(aliases.getOrDefault(name, name), Report.Result.from(player.getWin()), Report.Result::merge);
+                winsByPlayer.merge(aliases.getOrDefault(name, name), Boolean.TRUE.equals(player.getWin()), Boolean::logicalOr);
             }
         }
         var game = play.getItem();
         int quantity = Objects.requireNonNullElse(play.getQuantity(), 1);
         int minutes = Objects.requireNonNullElse(play.getLength(), 0);
-        return new Report.Entry(LocalDate.parse(play.getDate()), game.getObjectid(), game.getName(),
-                quantity, minutes, players);
+        return new Report.Entry(play.getId(), LocalDate.parse(play.getDate()), game.getObjectid(), game.getName(),
+                quantity, minutes, winsByPlayer);
     }
 
     private Map<Integer, String> covers(List<Report.Entry> entries) {

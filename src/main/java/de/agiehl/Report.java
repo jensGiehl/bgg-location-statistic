@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 
 public record Report(List<Game> games, List<Person> people, List<Timeline.Year> years, long rounds,
                      long minutes, int playedDays, String firstDate, String lastDate, String span) {
-    public record Entry(LocalDate date, int gameId, String title, int quantity, int minutes, Map<String, Result> players) {
+    public record Entry(Integer playId, LocalDate date, int gameId, String title, int quantity, int minutes,
+                        Map<String, Boolean> winsByPlayer) {
         public String dateLabel() {
             return Formats.date(date);
         }
@@ -22,35 +23,12 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
         }
     }
 
-    public enum Result {
-        WON("Sieg"), UNMARKED("Kein Sieg markiert"), UNKNOWN("Sieg nicht erfasst");
-
-        private final String label;
-
-        Result(String label) {
-            this.label = label;
-        }
-
-        public String label() {
-            return label;
-        }
-
-        static Result from(Boolean win) {
-            if (win == null) return UNKNOWN;
-            return win ? WON : UNMARKED;
-        }
-
-        Result merge(Result other) {
-            if (this == WON || other == WON) return WON;
-            return this == UNKNOWN ? other : this;
-        }
-    }
     public record Game(int id, String title, long rounds, long minutes, String cover) {
         public String duration() {
             return Formats.duration(minutes);
         }
     }
-    public record Participation(Entry play, Result result) {}
+    public record Participation(Entry play, boolean won) {}
     public record Person(String name, List<Participation> history, long rounds) {}
 
     static Report from(List<Entry> entries, Map<Integer, String> covers) {
@@ -76,8 +54,8 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
     private static List<Person> people(List<Entry> entries) {
         var histories = new HashMap<String, List<Participation>>();
         entries.stream().sorted(Comparator.comparing(Entry::date).reversed().thenComparing(Entry::title))
-                .forEach(play -> play.players().forEach((name, result) -> histories
-                        .computeIfAbsent(name, key -> new ArrayList<>()).add(new Participation(play, result))));
+                .forEach(play -> play.winsByPlayer().forEach((name, won) -> histories
+                        .computeIfAbsent(name, key -> new ArrayList<>()).add(new Participation(play, won))));
         return histories.entrySet().stream().map(group -> {
             var history = group.getValue();
             long rounds = history.stream().mapToLong(p -> p.play().quantity()).sum();

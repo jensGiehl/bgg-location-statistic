@@ -96,12 +96,15 @@
                 </summary>
                 <ul class="history-list" tabindex="0" th:attr="aria-label=|Partien von ${person.name()}|">
                   <li th:each="participation : ${person.history()}" th:with="play=${participation.play()}">
-                    <strong th:text="${play.title()}"></strong>
+                    <strong><a th:if="${play.playId() != null and play.playId() > 0}"
+                               th:href="|https://boardgamegeek.com/play/details/${play.playId()}|"
+                               th:text="${play.title()}"></a><span th:unless="${play.playId() != null and play.playId() > 0}"
+                               th:text="${play.title()}"></span></strong>
                     <span th:if="${play.quantity() > 1}" th:text="| · ${play.quantity()} Partien|"></span>
                     <div class="history-meta">
                       <time th:text="${play.dateLabel()}"></time>
                       <span th:text="${play.duration()}"></span>
-                      <span th:text="${participation.result().label()}"></span>
+                      <span th:if="${participation.won()}" role="img" aria-label="Sieg" title="Sieg">🏆</span>
                     </div>
                   </li>
                 </ul>
