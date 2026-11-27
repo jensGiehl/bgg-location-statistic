@@ -73,6 +73,11 @@ class GenerationTest {
                     ">Jens<", "Anna &amp; Co.", ">Lea<", ">4</strong>", ">2</strong>", "url(#slice-0)", "<image")) {
                 assertTrue(html.contains(value), value);
             }
+            assertTrue(html.contains("<span>Von</span><strong class=\"time-total\">01.04.2019</strong>"));
+            assertTrue(html.contains("<span>Bis</span><strong class=\"time-total\">05.06.2022</strong>"));
+            assertTrue(html.contains("<span>Zeitspanne</span><strong class=\"time-total\">3 Jahre, 2 Monate und 4 Tage</strong>"));
+            assertTrue(html.contains(">Anzahl Spieltage</th>"));
+            assertTrue(html.contains("<td class=\"text-end count\">2</td>"));
             for (var value : List.of("Frankenthal", "Nachbar von", "Freundeskreis Jochen", "Ausgefiltert", "test-token", "th:text")) {
                 assertFalse(html.contains(value), value);
             }

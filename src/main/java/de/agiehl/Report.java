@@ -23,7 +23,7 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
         }
     }
 
-    public record Game(int id, String title, long rounds, long minutes, String cover) {
+    public record Game(int id, String title, long rounds, long playedDays, long minutes, String cover) {
         public String duration() {
             return Formats.duration(minutes);
         }
@@ -39,6 +39,7 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
         var games = byGame.entrySet().stream().map(group -> {
             var plays = group.getValue();
             return new Game(group.getKey(), plays.getFirst().title(), count(plays),
+                    plays.stream().map(Entry::date).distinct().count(),
                     plays.stream().mapToLong(Entry::minutes).sum(), covers.get(group.getKey()));
         }).sorted(Comparator.comparingLong(Game::rounds).reversed().thenComparing(Game::title)
                 .thenComparingInt(Game::id)).toList();

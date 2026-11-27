@@ -22,10 +22,6 @@
   <section class="hero" aria-labelledby="title">
     <div class="hero-copy">
       <h1 id="title">Unsere<br><em>Spieleabende.</em></h1>
-      <p class="date-range" th:if="${report.playedDays() > 0}"><span class="range-line" aria-hidden="true"></span>
-        <span><span class="visually-hidden">Erster Spieltag </span><time th:text="${report.firstDate()}"></time>
-        <span aria-hidden="true"> — </span><span class="visually-hidden"> bis zum letzten Spieltag </span><time th:text="${report.lastDate()}"></time></span></p>
-      <p class="hero-period" th:if="${report.playedDays() > 0}" th:text="${report.span()}"></p>
     </div>
     <div class="tableau" aria-hidden="true">
       <div class="board"><div class="board-ring"></div></div>
@@ -46,11 +42,16 @@
       <div class="metric"><span>Verschiedene Spiele</span><strong th:text="${report.games().size()}"></strong></div>
       <div class="metric"><span>Erfasste Spielzeit</span><strong class="time-total" th:text="${report.duration()}"></strong></div>
     </section>
+    <section class="metrics" aria-label="Zeitraum der Spieleabende">
+      <div class="metric"><span>Von</span><strong class="time-total" th:text="${report.firstDate()}"></strong></div>
+      <div class="metric"><span>Bis</span><strong class="time-total" th:text="${report.lastDate()}"></strong></div>
+      <div class="metric period-span"><span>Zeitspanne</span><strong class="time-total" th:text="${report.span()}"></strong></div>
+    </section>
     <section class="section-block" id="spiele">
       <h2>Auf dem Spieltisch</h2>
       <div class="game-panel panel">
         <figure class="chart">
-          <svg viewBox="-2 -2 204 204" role="img" aria-label="Verteilung der Partien nach Spiel. Genaue Werte stehen in der Spieleliste.">
+          <svg viewBox="-2 -2 204 204" role="img" aria-label="Verteilung der Partien nach Spiel">
             <g th:each="slice,i : ${slices}">
               <title th:text="|${slice.game().title()} · ${slice.game().rounds()}×|"></title>
               <clipPath th:id="|slice-${i.index}|"><path th:attr="d=${slice.path()}"></path></clipPath>
@@ -67,13 +68,13 @@
         </figure>
         <div class="game-table" tabindex="0" role="region" aria-label="Alle Spiele nach Häufigkeit">
           <table class="table align-middle mb-0">
-            <thead><tr><th scope="col">Spiel</th><th scope="col" class="text-end">Partien</th><th scope="col" class="text-end">Spielzeit</th></tr></thead>
+            <thead><tr><th scope="col">Spiel</th><th scope="col" class="text-end">Anzahl Spieltage</th><th scope="col" class="text-end">Spielzeit</th></tr></thead>
             <tbody><tr th:each="game : ${report.games()}">
               <th scope="row"><div class="game-name">
                 <span class="jacket" aria-hidden="true"><img th:if="${game.cover() != null}" th:src="${game.cover()}" loading="lazy" alt=""></span>
                 <a th:href="|https://boardgamegeek.com/boardgame/${game.id()}|" th:text="${game.title()}"></a>
               </div></th>
-              <td class="text-end count" th:text="${game.rounds()}"></td>
+              <td class="text-end count" th:text="${game.playedDays()}"></td>
               <td class="text-end" th:text="${game.duration()}"></td>
             </tr></tbody>
           </table>
