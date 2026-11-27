@@ -1,0 +1,69 @@
+name: Rundenbuch veröffentlichen
+on:
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: '17 5 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rundenbuch-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: BGG-Client auschecken
+        uses: actions/checkout@v7
+        with:
+          repository: jensGiehl/bggClient
+          ref: 706748ad23212c313f46d47944d27f27eab30c50
+          path: vendor/bgg-client
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: BGG-Client installieren
+        run: mvn -B -ntp -f vendor/bgg-client/pom.xml install -DskipTests -Dmaven.javadoc.skip=true
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '27'
+      - name: Generator bauen und testen
+        run: mvn -B -ntp verify
+      - name: Statistik erzeugen
+        env:
+          BGG_API_KEY: ${{ secrets.BGG_API_KEY }}
+          BGG_USERNAME: ${{ secrets.BGG_USERNAME }}
+          BGG_LOCATION: ${{ secrets.BGG_LOCATION }}
+          SPRING_APPLICATION_JSON: ${{ secrets.BGG_CONFIG_JSON }}
+        run: |
+          if [ -z "$BGG_USERNAME" ]; then unset BGG_USERNAME; fi
+          if [ -z "$BGG_LOCATION" ]; then unset BGG_LOCATION; fi
+          java -jar target/bgg-location-overview.jar --bgg.output=target/pages/index.html
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - name: GitHub Page veröffentlichen
+        id: pages
+        uses: actions/deploy-pages@v4

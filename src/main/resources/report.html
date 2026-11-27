@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183c34">
+  <title>Rundenbuch · Unsere Spieleabende</title>
+  <style th:utext="${bootstrap}"></style>
+  <style th:utext="${theme}"></style>
+</head>
+<body id="oben">
+<a class="visually-hidden-focusable skip" href="#inhalt">Zum Inhalt</a>
+<header class="topbar">
+  <div class="shell bar-inner">
+    <a class="brand" href="#oben"><span class="die mini five" aria-hidden="true"></span>Rundenbuch</a>
+    <nav aria-label="Seitennavigation" th:if="${report.playedDays() > 0}">
+      <a href="#spiele">Spiele</a><a href="#runde">Spielrunde</a><a href="#chronik">Chronik</a>
+    </nav>
+  </div>
+</header>
+<main id="inhalt" class="shell">
+  <section class="hero" aria-labelledby="title">
+    <div class="hero-copy">
+      <h1 id="title">Unsere<br><em>Spieleabende.</em></h1>
+      <p class="date-range" th:if="${report.playedDays() > 0}"><span class="range-line" aria-hidden="true"></span>
+        <span><span class="visually-hidden">Erster Spieltag </span><time th:text="${report.firstDate()}"></time>
+        <span aria-hidden="true"> — </span><span class="visually-hidden"> bis zum letzten Spieltag </span><time th:text="${report.lastDate()}"></time></span></p>
+      <p class="hero-period" th:if="${report.playedDays() > 0}" th:text="${report.span()}"></p>
+    </div>
+    <div class="tableau" aria-hidden="true">
+      <div class="board"><div class="board-ring"></div></div>
+      <div class="box-art">
+        <span class="box-pattern"></span>
+        <img th:if="${!report.games().isEmpty() and report.games().getFirst().cover() != null}"
+             th:src="${report.games().getFirst().cover()}" alt="">
+      </div>
+      <span class="die hero-die five"></span><span class="die second-die two"></span>
+      <span class="chip chip-one"></span><span class="chip chip-two"></span>
+    </div>
+  </section>
+  <p class="empty-message" th:if="${report.playedDays() == 0}">Für diese Auswahl sind bei BoardGameGeek keine Partien eingetragen.</p>
+  <div th:if="${report.playedDays() > 0}">
+    <section class="metrics" aria-label="Spieleabende in Zahlen">
+      <div class="metric"><span>Partien</span><strong th:text="${report.rounds()}"></strong></div>
+      <div class="metric"><span>Spieltage</span><strong th:text="${report.playedDays()}"></strong></div>
+      <div class="metric"><span>Verschiedene Spiele</span><strong th:text="${report.games().size()}"></strong></div>
+      <div class="metric"><span>Erfasste Spielzeit</span><strong class="time-total" th:text="${report.duration()}"></strong></div>
+    </section>
+    <section class="section-block" id="spiele">
+      <h2>Auf dem Spieltisch</h2>
+      <div class="game-panel panel">
+        <figure class="chart">
+          <svg viewBox="-2 -2 204 204" role="img" aria-label="Verteilung der Partien nach Spiel. Genaue Werte stehen in der Spieleliste.">
+            <g th:each="slice,i : ${slices}">
+              <title th:text="|${slice.game().title()} · ${slice.game().rounds()}×|"></title>
+              <clipPath th:id="|slice-${i.index}|"><path th:attr="d=${slice.path()}"></path></clipPath>
+              <path th:attr="d=${slice.path()},fill=${slice.color()}"></path>
+              <image th:if="${slice.game().cover() != null}" preserveAspectRatio="xMidYMid slice"
+                     th:attr="href=${slice.game().cover()},x=${slice.x()},y=${slice.y()},width=${slice.width()},height=${slice.height()},clip-path=|url(#slice-${i.index})|"></image>
+              <path fill="none" stroke="#fffaf0" stroke-width="1.1" th:attr="d=${slice.path()}"></path>
+            </g>
+            <circle cx="100" cy="100" r="41" fill="#fffaf0"></circle>
+            <text x="100" y="101" class="chart-total" text-anchor="middle" th:text="${report.rounds()}"></text>
+            <text x="100" y="117" class="chart-unit" text-anchor="middle">Partien</text>
+          </svg>
+          <figcaption>Anteil an allen Partien</figcaption>
+        </figure>
+        <div class="game-table" tabindex="0" role="region" aria-label="Alle Spiele nach Häufigkeit">
+          <table class="table align-middle mb-0">
+            <thead><tr><th scope="col">Spiel</th><th scope="col" class="text-end">Partien</th><th scope="col" class="text-end">Spielzeit</th></tr></thead>
+            <tbody><tr th:each="game : ${report.games()}">
+              <th scope="row"><div class="game-name">
+                <span class="jacket" aria-hidden="true"><img th:if="${game.cover() != null}" th:src="${game.cover()}" loading="lazy" alt=""></span>
+                <a th:href="|https://boardgamegeek.com/boardgame/${game.id()}|" th:text="${game.title()}"></a>
+              </div></th>
+              <td class="text-end count" th:text="${game.rounds()}"></td>
+              <td class="text-end" th:text="${game.duration()}"></td>
+            </tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <div class="lower-layout">
+      <section id="runde" class="section-block">
+        <h2>Die Spielrunde</h2>
+        <div class="panel roster">
+          <p class="list-label">Mitgespielte Partien</p>
+          <p th:if="${report.people().isEmpty()}">Keine Spielernamen erfasst.</p>
+          <ol th:unless="${report.people().isEmpty()}">
+            <li th:each="person : ${report.people()}">
+              <div class="person-line"><span th:text="${person.name()}"></span><strong th:text="${person.rounds()}"></strong></div>
+              <progress th:value="${person.rounds()}" th:max="${report.rounds()}" aria-hidden="true"></progress>
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section id="chronik" class="section-block">
+        <h2>Die Chronik</h2>
+        <div class="panel archive">
+          <p class="list-label">Spieltage pro Monat</p>
+          <div class="month-key"><span></span><span th:each="m : ${ {'Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'} }" th:text="${m}"></span></div>
+          <details th:each="year,i : ${report.years()}" th:attr="open=${i.first ? 'open' : null}">
+            <summary>
+              <span class="year-label" th:text="${year.number()}"></span>
+              <span class="month-cell" th:each="cell : ${year.months()}" th:classappend="${cell.level()}"
+                    th:title="|${cell.month()} ${year.number()} · ${cell.label()}|"><span class="visually-hidden" th:text="|${cell.month()} ${cell.label()}. |"></span></span>
+            </summary>
+            <div class="day-list">
+              <p th:if="${year.days().isEmpty()}">In diesem Jahr wurde keine Partie erfasst.</p>
+              <article class="play-day" th:each="day : ${year.days()}">
+                <h3 th:text="${day.date()}"></h3>
+                <ul><li th:each="game : ${day.games()}">
+                  <img th:if="${game.cover() != null}" loading="lazy" th:src="${game.cover()}" alt="">
+                  <span th:text="${game.title()}"></span><b th:text="|${game.rounds()}×|"></b>
+                </li></ul>
+              </article>
+            </div>
+          </details>
+          <div class="legend"><span><i class="empty"></i>0</span><span><i class="low"></i>1</span>
+            <span><i class="medium"></i>2–3</span><span><i class="high"></i>4+ Spieltage</span></div>
+          <p class="hint">Jahr öffnen, um Spieltage und Spiele zu sehen.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+<footer class="shell"><span>Rundenbuch</span><a href="https://boardgamegeek.com/">Daten von BoardGameGeek</a></footer>
+</body>
+</html>

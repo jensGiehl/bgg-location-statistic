@@ -1,0 +1,13 @@
+spring:
+  main:
+    banner-mode: "off"
+    web-application-type: none
+
+bgg:
+  username: "${BGG_USERNAME:JensG}"
+  location: "${BGG_LOCATION:Frankenthal (Jochen)}"
+  api-key: "${BGG_API_KEY:}"
+  output: target/pages/index.html
+  names:
+    "[Jochen (Frankenthal)]": Jochen
+    "[Torben (Nachbar von Jochen)]": Torben
