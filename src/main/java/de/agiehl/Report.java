@@ -41,7 +41,7 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
             return new Game(group.getKey(), plays.getFirst().title(), count(plays),
                     plays.stream().map(Entry::date).distinct().count(),
                     plays.stream().mapToLong(Entry::minutes).sum(), covers.get(group.getKey()));
-        }).sorted(Comparator.comparingLong(Game::rounds).reversed().thenComparing(Game::title)
+        }).sorted(Comparator.comparingLong(Game::playedDays).reversed().thenComparing(Game::title)
                 .thenComparingInt(Game::id)).toList();
 
         var days = entries.stream().collect(Collectors.groupingBy(Entry::date, TreeMap::new, Collectors.toList()));

@@ -68,7 +68,7 @@
         </figure>
         <div class="game-table" tabindex="0" role="region" aria-label="Alle Spiele nach Häufigkeit">
           <table class="table align-middle mb-0">
-            <thead><tr><th scope="col">Spiel</th><th scope="col" class="text-end">Anzahl Spieltage</th><th scope="col" class="text-end">Spielzeit</th></tr></thead>
+            <thead><tr><th scope="col">Spiel</th><th scope="col" class="text-end" aria-sort="descending">Anzahl Spieltage</th><th scope="col" class="text-end">Spielzeit</th></tr></thead>
             <tbody><tr th:each="game : ${report.games()}">
               <th scope="row"><div class="game-name">
                 <span class="jacket" aria-hidden="true"><img th:if="${game.cover() != null}" th:src="${game.cover()}" loading="lazy" alt=""></span>

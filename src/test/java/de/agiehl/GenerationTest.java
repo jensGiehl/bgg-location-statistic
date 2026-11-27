@@ -41,7 +41,7 @@ class GenerationTest {
                       <player name="Jochen"/><player name="Torben (Nachbar von Jochen)"/>
                       <player name="Georg (Freundeskreis Jochen)" win="0"/><player name="Georg" win="1"/>
                       <player name="Tim (Freundeskreis Jochen)" win="0"/></players></play>
-                    <play date="2022-06-05" quantity="1" length="50" location="Frankenthal (Jochen)">
+                    <play date="2022-06-05" quantity="5" length="50" location="Frankenthal (Jochen)">
                       <item objectid="9209" name="Zug um Zug"/><players><player name="Anna &amp; Co."/><player name="Tim"/></players></play>
                     <play date="1998-12-31" quantity="9" length="100" location="Anderswo">
                       <item objectid="999" name="Ausgefiltert"/></play>
@@ -70,13 +70,16 @@ class GenerationTest {
             String html = Files.readString(page);
             for (var value : List.of("01.04.2019", "05.06.2022", "3 Jahre, 2 Monate und 4 Tage",
                     "1 Tag, 2 Stunden und 3 Minuten", ">2020<", ">2021<", ">Jochen<", ">Torben<",
-                    ">Jens<", "Anna &amp; Co.", ">Lea<", ">4</strong>", ">2</strong>", "url(#slice-0)", "<image")) {
+                    ">Jens<", "Anna &amp; Co.", ">Lea<", ">8</strong>", ">2</strong>", "url(#slice-0)", "<image")) {
                 assertTrue(html.contains(value), value);
             }
             assertTrue(html.contains("<span>Von</span><strong class=\"time-total\">01.04.2019</strong>"));
             assertTrue(html.contains("<span>Bis</span><strong class=\"time-total\">05.06.2022</strong>"));
             assertTrue(html.contains("<span>Zeitspanne</span><strong class=\"time-total\">3 Jahre, 2 Monate und 4 Tage</strong>"));
             assertTrue(html.contains(">Anzahl Spieltage</th>"));
+            int firstGame = html.indexOf("/boardgame/13\">CATAN</a>");
+            int secondGame = html.indexOf("/boardgame/9209\">Zug um Zug</a>");
+            assertTrue(firstGame >= 0 && secondGame > firstGame);
             assertTrue(html.contains("<td class=\"text-end count\">2</td>"));
             assertTrue(html.contains("<title>CATAN · 2 Spieltage</title>"));
             assertTrue(html.contains("<title>Zug um Zug · 1 Spieltag</title>"));
@@ -95,7 +98,7 @@ class GenerationTest {
             var tim = history(html, "Tim");
             assertTrue(tim.contains("href=\"https://boardgamegeek.com/play/details/102\">CATAN</a>"));
             assertTrue(tim.contains("<span>Zug um Zug</span>"));
-            assertTrue(tim.contains("<strong>4</strong>"));
+            assertTrue(tim.contains("<strong>8</strong>"));
             int winningPlay = tim.indexOf("/play/details/102");
             assertFalse(tim.substring(0, winningPlay).contains("🏆"));
             assertTrue(tim.substring(winningPlay).contains(">🏆<"));
