@@ -68,6 +68,10 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
         return entries.stream().mapToLong(Entry::quantity).sum();
     }
 
+    public long totalGameDays() {
+        return games.stream().mapToLong(Game::playedDays).sum();
+    }
+
     public String duration() {
         return Formats.duration(minutes);
     }

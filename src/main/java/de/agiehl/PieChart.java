@@ -12,12 +12,13 @@ public final class PieChart {
 
     static List<Slice> slices(Report report) {
         var result = new ArrayList<Slice>();
+        long totalGameDays = report.totalGameDays();
         long previous = 0;
         for (var game : report.games()) {
-            double start = 2 * Math.PI * previous / report.rounds() - Math.PI / 2;
-            previous += game.rounds();
-            double end = 2 * Math.PI * previous / report.rounds() - Math.PI / 2;
-            String path = game.rounds() == report.rounds()
+            double start = 2 * Math.PI * previous / totalGameDays - Math.PI / 2;
+            previous += game.playedDays();
+            double end = 2 * Math.PI * previous / totalGameDays - Math.PI / 2;
+            String path = game.playedDays() == totalGameDays
                     ? "M100 0a100 100 0 1 1 0 200a100 100 0 1 1 0-200z"
                     : String.format(Locale.ROOT, "M100 100 L%.5f %.5f A100 100 0 %d 1 %.5f %.5f Z",
                             x(start), y(start), end - start > Math.PI ? 1 : 0, x(end), y(end));

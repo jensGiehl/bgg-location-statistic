@@ -78,6 +78,10 @@ class GenerationTest {
             assertTrue(html.contains("<span>Zeitspanne</span><strong class=\"time-total\">3 Jahre, 2 Monate und 4 Tage</strong>"));
             assertTrue(html.contains(">Anzahl Spieltage</th>"));
             assertTrue(html.contains("<td class=\"text-end count\">2</td>"));
+            assertTrue(html.contains("<title>CATAN · 2 Spieltage</title>"));
+            assertTrue(html.contains("<title>Zug um Zug · 1 Spieltag</title>"));
+            assertTrue(html.contains("class=\"chart-total\" text-anchor=\"middle\">3</text>"));
+            assertTrue(html.contains("M100 100 L100.00000 0.00000 A100 100 0 1 1 13.39746 150.00000 Z"));
             for (var value : List.of("Frankenthal", "Nachbar von", "Freundeskreis Jochen", "Ausgefiltert", "test-token", "th:text")) {
                 assertFalse(html.contains(value), value);
             }

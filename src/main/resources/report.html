@@ -51,9 +51,9 @@
       <h2>Auf dem Spieltisch</h2>
       <div class="game-panel panel">
         <figure class="chart">
-          <svg viewBox="-2 -2 204 204" role="img" aria-label="Verteilung der Partien nach Spiel">
+          <svg viewBox="-2 -2 204 204" role="img" aria-label="Verteilung der Spieltage pro Spiel">
             <g th:each="slice,i : ${slices}">
-              <title th:text="|${slice.game().title()} · ${slice.game().rounds()}×|"></title>
+              <title th:text="|${slice.game().title()} · ${slice.game().playedDays()} ${slice.game().playedDays() == 1 ? 'Spieltag' : 'Spieltage'}|"></title>
               <clipPath th:id="|slice-${i.index}|"><path th:attr="d=${slice.path()}"></path></clipPath>
               <path th:attr="d=${slice.path()},fill=${slice.color()}"></path>
               <image th:if="${slice.game().cover() != null}" preserveAspectRatio="xMidYMid slice"
@@ -61,10 +61,10 @@
               <path fill="none" stroke="#fffaf0" stroke-width="1.1" th:attr="d=${slice.path()}"></path>
             </g>
             <circle cx="100" cy="100" r="41" fill="#fffaf0"></circle>
-            <text x="100" y="101" class="chart-total" text-anchor="middle" th:text="${report.rounds()}"></text>
-            <text x="100" y="117" class="chart-unit" text-anchor="middle">Partien</text>
+            <text x="100" y="101" class="chart-total" text-anchor="middle" th:text="${report.totalGameDays()}"></text>
+            <text x="100" y="117" class="chart-unit" text-anchor="middle" th:text="${report.totalGameDays() == 1 ? 'Spieltag' : 'Spieltage'}"></text>
           </svg>
-          <figcaption>Anteil an allen Partien</figcaption>
+          <figcaption>Spieltage pro Spiel</figcaption>
         </figure>
         <div class="game-table" tabindex="0" role="region" aria-label="Alle Spiele nach Häufigkeit">
           <table class="table align-middle mb-0">
