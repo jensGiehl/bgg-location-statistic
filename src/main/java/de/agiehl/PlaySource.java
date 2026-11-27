@@ -30,11 +30,13 @@ final class PlaySource {
     }
 
     private static Report.Entry entry(Play play, Map<String, String> aliases) {
-        var players = play.getPlayers().stream()
-                .map(p -> p.getName() == null || p.getName().isBlank() ? p.getUsername() : p.getName())
-                .filter(name -> name != null && !name.isBlank())
-                .map(name -> aliases.getOrDefault(name, name))
-                .distinct().toList();
+        var players = new HashMap<String, Report.Result>();
+        for (var player : play.getPlayers()) {
+            var name = player.getName() == null || player.getName().isBlank() ? player.getUsername() : player.getName();
+            if (name != null && !name.isBlank()) {
+                players.merge(aliases.getOrDefault(name, name), Report.Result.from(player.getWin()), Report.Result::merge);
+            }
+        }
         var game = play.getItem();
         int quantity = Objects.requireNonNullElse(play.getQuantity(), 1);
         int minutes = Objects.requireNonNullElse(play.getLength(), 0);

@@ -88,8 +88,24 @@
           <p th:if="${report.people().isEmpty()}">Keine Spielernamen erfasst.</p>
           <ol th:unless="${report.people().isEmpty()}">
             <li th:each="person : ${report.people()}">
-              <div class="person-line"><span th:text="${person.name()}"></span><strong th:text="${person.rounds()}"></strong></div>
-              <progress th:value="${person.rounds()}" th:max="${report.rounds()}" aria-hidden="true"></progress>
+              <details class="person-history" name="spielrunde">
+                <summary>
+                  <span class="person-line"><span class="person-name" th:text="${person.name()}"></span>
+                    <strong th:text="${person.rounds()}"></strong><span class="visually-hidden"> Partien</span></span>
+                  <progress th:value="${person.rounds()}" th:max="${report.rounds()}" aria-hidden="true"></progress>
+                </summary>
+                <ul class="history-list" tabindex="0" th:attr="aria-label=|Partien von ${person.name()}|">
+                  <li th:each="participation : ${person.history()}" th:with="play=${participation.play()}">
+                    <strong th:text="${play.title()}"></strong>
+                    <span th:if="${play.quantity() > 1}" th:text="| · ${play.quantity()} Partien|"></span>
+                    <div class="history-meta">
+                      <time th:text="${play.dateLabel()}"></time>
+                      <span th:text="${play.duration()}"></span>
+                      <span th:text="${participation.result().label()}"></span>
+                    </div>
+                  </li>
+                </ul>
+              </details>
             </li>
           </ol>
         </div>

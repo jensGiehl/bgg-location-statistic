@@ -2,6 +2,7 @@ package de.agiehl;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -11,13 +12,46 @@ import java.util.stream.Collectors;
 
 public record Report(List<Game> games, List<Person> people, List<Timeline.Year> years, long rounds,
                      long minutes, int playedDays, String firstDate, String lastDate, String span) {
-    public record Entry(LocalDate date, int gameId, String title, int quantity, int minutes, List<String> players) {}
+    public record Entry(LocalDate date, int gameId, String title, int quantity, int minutes, Map<String, Result> players) {
+        public String dateLabel() {
+            return Formats.date(date);
+        }
+
+        public String duration() {
+            return minutes > 0 ? Formats.duration(minutes) : "Dauer nicht erfasst";
+        }
+    }
+
+    public enum Result {
+        WON("Sieg"), UNMARKED("Kein Sieg markiert"), UNKNOWN("Sieg nicht erfasst");
+
+        private final String label;
+
+        Result(String label) {
+            this.label = label;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        static Result from(Boolean win) {
+            if (win == null) return UNKNOWN;
+            return win ? WON : UNMARKED;
+        }
+
+        Result merge(Result other) {
+            if (this == WON || other == WON) return WON;
+            return this == UNKNOWN ? other : this;
+        }
+    }
     public record Game(int id, String title, long rounds, long minutes, String cover) {
         public String duration() {
             return Formats.duration(minutes);
         }
     }
-    public record Person(String name, long rounds) {}
+    public record Participation(Entry play, Result result) {}
+    public record Person(String name, List<Participation> history, long rounds) {}
 
     static Report from(List<Entry> entries, Map<Integer, String> covers) {
         if (entries.isEmpty()) {
@@ -31,17 +65,24 @@ public record Report(List<Game> games, List<Person> people, List<Timeline.Year> 
         }).sorted(Comparator.comparingLong(Game::rounds).reversed().thenComparing(Game::title)
                 .thenComparingInt(Game::id)).toList();
 
-        var attendance = new HashMap<String, Long>();
-        entries.forEach(play -> play.players().forEach(name -> attendance.merge(name, (long) play.quantity(), Long::sum)));
-        var people = attendance.entrySet().stream().map(e -> new Person(e.getKey(), e.getValue()))
-                .sorted(Comparator.comparingLong(Person::rounds).reversed().thenComparing(Person::name)).toList();
-
         var days = entries.stream().collect(Collectors.groupingBy(Entry::date, TreeMap::new, Collectors.toList()));
         var first = days.firstKey();
         var last = days.lastKey();
-        return new Report(games, people, Timeline.build(days, covers), count(entries),
+        return new Report(games, people(entries), Timeline.build(days, covers), count(entries),
                 games.stream().mapToLong(Game::minutes).sum(), days.size(),
                 Formats.date(first), Formats.date(last), Formats.period(Period.between(first, last)));
+    }
+
+    private static List<Person> people(List<Entry> entries) {
+        var histories = new HashMap<String, List<Participation>>();
+        entries.stream().sorted(Comparator.comparing(Entry::date).reversed().thenComparing(Entry::title))
+                .forEach(play -> play.players().forEach((name, result) -> histories
+                        .computeIfAbsent(name, key -> new ArrayList<>()).add(new Participation(play, result))));
+        return histories.entrySet().stream().map(group -> {
+            var history = group.getValue();
+            long rounds = history.stream().mapToLong(p -> p.play().quantity()).sum();
+            return new Person(group.getKey(), List.copyOf(history), rounds);
+        }).sorted(Comparator.comparingLong(Person::rounds).reversed().thenComparing(Person::name)).toList();
     }
 
     static long count(List<Entry> entries) {
